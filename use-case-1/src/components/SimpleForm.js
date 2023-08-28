@@ -7,6 +7,8 @@ const SimpleForm = () => {
     const [countryName, setCountryName] = useState("")
     const [population, setPopulation] = useState(0)
     const [sort, setSort] = useState("")
+    const [pagLimit, setPagLimit] = useState(0)
+    const setPaginated = useState([])[1]
 
     const getCountries = () => {
         axios.get("https://restcountries.com/v3.1/all")
@@ -45,6 +47,11 @@ const SimpleForm = () => {
         }
     }
 
+    const paginate = (paginateNum) => {
+        const newPaginatedState = countries.slice(0, paginateNum)
+        setPaginated(newPaginatedState)
+    }
+
     const handleOnCountryNameChange = (e) => {
         const { value } = e.target
         setCountryName(value)
@@ -62,6 +69,13 @@ const SimpleForm = () => {
         const { value } = e.target
         setSort(value)
         sortByName(value)
+    }
+
+    const handleOnLimitChange = (e) => {
+        const { value } = e.target
+        setPagLimit(value)
+        const numberValue = parseInt(value)
+        paginate(numberValue)
     }
 
     return (
@@ -91,8 +105,12 @@ const SimpleForm = () => {
                 />
             </section>
             <section>
-                <label htmlFor="">Name</label>
-                <input type="text" />
+                <label htmlFor="">Pagination limit</label>
+                <input 
+                    type="text"
+                    value={pagLimit}
+                    onChange={handleOnLimitChange}
+                />
             </section>
             
             <button type="submit">Submit</button>
