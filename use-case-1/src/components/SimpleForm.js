@@ -3,7 +3,7 @@ import axios from "axios"
 
 const SimpleForm = () => {
     const [countries, setCountries] = useState([])
-    const [_, setFilteredCountries] = useState([])
+    const setFilteredCountries = useState([])[1]
     const [countryName, setCountryName] = useState("")
 
     const getCountries = () => {
