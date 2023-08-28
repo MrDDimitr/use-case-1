@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import axios from "axios"
 import View from "./View"
+import { filterByPopulation, paginate, sortByName } from "./manipulatingFunctions"
 
 const SimpleForm = () => {
     const [countries, setCountries] = useState([])
@@ -22,41 +23,9 @@ const SimpleForm = () => {
         getCountries()
     }, [])
 
-    const filterCoutries = (newCountryName, countriesToFilter) => {
-        const filtered = countriesToFilter.filter((country) => (
-            country.name.common.toLowerCase().includes(newCountryName.toLowerCase())
-        ))
-        return filtered
-    }
-
-    const filterByPopulation = (newPopulation, countriesToFilter) => {
-        const valueInMill = newPopulation * 1000000
-        const filtered = countriesToFilter.filter((country) => (
-            country.population < valueInMill
-        ))
-        return filtered
-    }
-
-    const sortByName = (sortValue, countiesToSort) => {
-        let sorted
-        if (sortValue === "ascend") {
-            sorted = countiesToSort.sort((a, b) => a.name.common.localeCompare(b.name.common))
-        } else if (sortValue === "descend") {
-            sorted = countiesToSort.sort((a, b) => b.name.common.localeCompare(a.name.common))
-        } else {
-            sorted = countiesToSort
-        }
-        return sorted
-    }
-
-    const paginate = (paginateNum, countriesToPaginate) => {
-        const newPaginatedState = countriesToPaginate.slice(0, paginateNum)
-        return newPaginatedState
-    }
-
     const combineFunctionalities = useCallback(() => {
         const allCountries = countries
-        const filteredByName = filterCoutries(countryNameFilter, allCountries)
+        const filteredByName = filteredCountries(countryNameFilter, allCountries)
         const filteredByPopulation = filterByPopulation(population, filteredByName)
         const sorted = sortByName(sort, filteredByPopulation)
         const paginated = paginate(pagLimit, sorted)
