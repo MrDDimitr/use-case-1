@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import axios from "axios"
+import View from "./View"
 
 const SimpleForm = () => {
     const [countries, setCountries] = useState([])
     const [filteredCountries, setFilteredCountries] = useState([])
-    const [countryName, setCountryName] = useState("")
-    const [population, setPopulation] = useState(0)
+    const [countryNameFilter, setCountryNameFilter] = useState("")
+    const [population, setPopulation] = useState(1)
     const [sort, setSort] = useState("")
-    const [pagLimit, setPagLimit] = useState(0)
-    const setPaginated = useState([])[1]
+    const [pagLimit, setPagLimit] = useState(10)
 
     const getCountries = () => {
         axios.get("https://restcountries.com/v3.1/all")
@@ -22,69 +22,80 @@ const SimpleForm = () => {
         getCountries()
     }, [])
 
-    const filterCoutries = (newCountryName) => {
-        const filtered = countries.filter((country) => (
+    const filterCoutries = (newCountryName, countriesToFilter) => {
+        const filtered = countriesToFilter.filter((country) => (
             country.name.common.toLowerCase().includes(newCountryName.toLowerCase())
         ))
-        setFilteredCountries(filtered)
+        return filtered
     }
 
-    const filterByPopulation = (newPopulation) => {
+    const filterByPopulation = (newPopulation, countriesToFilter) => {
         const valueInMill = newPopulation * 1000000
-        const filtered = countries.filter((country) => (
+        const filtered = countriesToFilter.filter((country) => (
             country.population < valueInMill
         ))
-        setFilteredCountries(filtered)
+        return filtered
     }
 
-    const sortByName = (sortValue) => {
+    const sortByName = (sortValue, countiesToSort) => {
+        let sorted
         if (sortValue === "ascend") {
-            const sorted = filteredCountries.sort((a, b) => a.name.common.localeCompare(b.name.common))
-            setFilteredCountries(sorted)
+            sorted = countiesToSort.sort((a, b) => a.name.common.localeCompare(b.name.common))
         } else if (sortValue === "descend") {
-            const sorted = filteredCountries.sort((a, b) => b.name.common.localeCompare(a.name.common))
-            setFilteredCountries(sorted)
+            sorted = countiesToSort.sort((a, b) => b.name.common.localeCompare(a.name.common))
+        } else {
+            sorted = countiesToSort
         }
+        return sorted
     }
 
-    const paginate = (paginateNum) => {
-        const newPaginatedState = countries.slice(0, paginateNum)
-        setPaginated(newPaginatedState)
+    const paginate = (paginateNum, countriesToPaginate) => {
+        const newPaginatedState = countriesToPaginate.slice(0, paginateNum)
+        return newPaginatedState
     }
+
+    const combineFunctionalities = useCallback(() => {
+        const allCountries = countries
+        const filteredByName = filterCoutries(countryNameFilter, allCountries)
+        const filteredByPopulation = filterByPopulation(population, filteredByName)
+        const sorted = sortByName(sort, filteredByPopulation)
+        const paginated = paginate(pagLimit, sorted)
+        setFilteredCountries(paginated)
+    }, [countryNameFilter, population, sort, pagLimit, countries])
+
 
     const handleOnCountryNameChange = (e) => {
         const { value } = e.target
-        setCountryName(value)
-        filterCoutries(value)
+        setCountryNameFilter(value)
     }
 
     const handleOnPopulationChange = (e) => {
         const { value } = e.target
         setPopulation(value)
-        const numberValue = parseInt(value)
-        filterByPopulation(numberValue)
     }
 
     const handleOnSortChange = (e) => {
         const { value } = e.target
         setSort(value)
-        sortByName(value)
     }
 
     const handleOnLimitChange = (e) => {
         const { value } = e.target
         setPagLimit(value)
-        const numberValue = parseInt(value)
-        paginate(numberValue)
+    }
+
+    const handleOnSubmit = (e) => {
+        e.preventDefault()
+        combineFunctionalities()
     }
 
     return (
-        <form action="">
+        <form action="" onSubmit={handleOnSubmit}>
             <section>
                 <label htmlFor="">Country Name</label>
                 <input 
                     type="text"
-                    value={countryName}
+                    value={countryNameFilter}
                     onChange={handleOnCountryNameChange}
                 />
             </section>
@@ -114,6 +125,8 @@ const SimpleForm = () => {
             </section>
             
             <button type="submit">Submit</button>
+
+            <View countries={filteredCountries} />
         </form>
     )
 }
