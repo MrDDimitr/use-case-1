@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import axios from "axios"
 import View from "./View"
-import { filterByPopulation, paginate, sortByName } from "./manipulatingFunctions"
+import { filterByPopulation, filterCoutries, paginate, sortByName } from "./manipulatingFunctions"
 
 const SimpleForm = () => {
     const [countries, setCountries] = useState([])
@@ -25,7 +25,7 @@ const SimpleForm = () => {
 
     const combineFunctionalities = useCallback(() => {
         const allCountries = countries
-        const filteredByName = filteredCountries(countryNameFilter, allCountries)
+        const filteredByName = filterCoutries(countryNameFilter, allCountries)
         const filteredByPopulation = filterByPopulation(population, filteredByName)
         const sorted = sortByName(sort, filteredByPopulation)
         const paginated = paginate(pagLimit, sorted)
